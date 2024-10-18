@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #timer {
+            font-size: 48px;
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the Timer App</h1>
+
+    <div id="user-info">
+        <h2 id="welcome-message"></h2>
+        <div id="timer">00:00</div>
+        <button id="start-timer">Start Timer</button>
+        <button id="stop-timer" style="display: none;">Stop Timer</button>
+    </div>
+
+    <script>
+        let timerInterval;
+        let timerSeconds = 0;
+        const jsonBinUrl = 'https://api.jsonbin.io/v3/b/67128897ad19ca34f8bac7e8'; // Replace with your bin ID
+        const jsonBinKey = '$2a$10$BIaE1jtujFV0xnqOPVVLJOoRWYI29xVqq96SKqQqHPeKgGOybCckC'; // Replace with your master key
+
+        async function updateBin(data) {
+            const response = await fetch(jsonBinUrl, {
+                method: 'PUT', // Use PUT to update the existing bin
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': jsonBinKey
+                },
+                body: JSON.stringify(data) // Send the updated data
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('Bin updated:', result);
+            } else {
+                console.error('Error updating bin:', response.statusText);
+            }
+        }
+
+        function saveTimerData(duration) {
+            const now = new Date();
+            const timerData = {
+                date: now.toISOString().split('T')[0], // YYYY-MM-DD
+                startTime: new Date(now.getTime() - (duration * 1000)).toISOString().split('T')[1].slice(0, 8), // HH:MM:SS
+                endTime: now.toISOString().split('T')[1].slice(0, 8), // HH:MM:SS
+                duration: duration
+            };
+
+            // Fetch existing bin data first
+            fetch(jsonBinUrl, {
+                method: 'GET',
+                headers: {
+                    'X-Master-Key': jsonBinKey
+                }
+            })
+            .then(response => response.json())
+            .then(existingData => {
+                // Append new timer data to existing data
+                const updatedData = {
+                    timers: [...existingData.record.timers, timerData]
+                };
+                updateBin(updatedData); // Update the bin with new data
+            })
+            .catch(error => {
+                console.error('Error fetching existing bin data:', error);
+            });
+        }
+
+        document.getElementById('start-timer').addEventListener('click', function () {
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                const minutes = Math.floor(timerSeconds / 60);
+                const seconds = timerSeconds % 60;
+                document.getElementById('timer').innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }, 1000);
+            this.style.display = 'none'; // Hide start button
+            document.getElementById('stop-timer').style.display = 'inline-block'; // Show stop button
+        });
+
+        document.getElementById('stop-timer').addEventListener('click', function () {
+            clearInterval(timerInterval);
+            saveTimerData(timerSeconds); // Save timer data when stopped
+            timerSeconds = 0; // Reset timer
+            document.getElementById('timer').innerText = '00:00';
+            document.getElementById('start-timer').style.display = 'inline-block'; // Show start button
+            this.style.display = 'none'; // Hide stop button
+        });
+    </script>
+</body>
+</html>

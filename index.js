@@ -73,11 +73,13 @@ document.getElementById('stop-timer').addEventListener('click', function () {
 });
 
 window.onload = function() {
-    const iframe = document.querySelector('iframe');
+    const iframe = document.getElementById('iframe');
     if (iframe) {
         iframe.onload = function() {
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            const iframeDoc = iframe.contentDocument;
             const logo = iframeDoc.querySelector('.logo');
+            console.log(iframeDoc, iframe, logo);
+            
             if (logo) {
                 logo.style.display = 'none';
             }

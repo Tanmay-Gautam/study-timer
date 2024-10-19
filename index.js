@@ -72,10 +72,17 @@ document.getElementById('stop-timer').addEventListener('click', function () {
     this.style.display = 'none'; // Hide stop button
 });
 
-iframe.onload = function() {
-    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-    const logo = iframeDoc.querySelector('.logo');
-    if (logo) {
-        logo.style.display = 'none';
+window.onload = function() {
+    const iframe = document.querySelector('iframe');
+    if (iframe) {
+        iframe.onload = function() {
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            const logo = iframeDoc.querySelector('.logo');
+            if (logo) {
+                logo.style.display = 'none';
+            }
+        };
+    } else {
+        console.error('Iframe not found');
     }
 };
